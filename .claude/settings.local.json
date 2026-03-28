@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in [''app.py'',''pages/1_모니터링.py'',''pages/2_ROI_설정.py'',''pages/3_이벤트_다시보기.py'']]; print\\(''문법 OK''\\)\")",
+      "Bash(python -c \":*)"
+    ]
+  }
+}

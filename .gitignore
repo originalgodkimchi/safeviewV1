@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+venv/
+.venv/
+env/
+.env
+
+# YOLO 모델 (빌드 시 자동 다운로드)
+*.pt
+*.onnx
+
+# 대용량 데이터 (로컬 전용)
+data/
+saved_events/
+logs/
+temp_extracted.txt
+
+# ROI 설정은 서버 런타임에 생성됨
+roi_configs/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production.local
+
+# Streamlit 잔여
+.streamlit/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
