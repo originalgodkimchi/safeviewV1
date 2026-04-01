@@ -116,12 +116,13 @@ export default function ROISettings() {
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
 
-    // 실제 이미지 좌표로 변환
-    const scaleX = imageData.width / canvas.width
-    const scaleY = imageData.height / canvas.height
+    // rect.width/height = CSS 렌더링 크기, imageData = 원본 해상도
+    // 클릭 위치(CSS픽셀) → 원본 이미지 좌표로 변환
+    const scaleX = imageData.width  / rect.width
+    const scaleY = imageData.height / rect.height
 
     const x = Math.round((e.clientX - rect.left) * scaleX)
-    const y = Math.round((e.clientY - rect.top) * scaleY)
+    const y = Math.round((e.clientY - rect.top)  * scaleY)
 
     setPoints(prev => [...prev, [x, y]])
   }

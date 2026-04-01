@@ -35,22 +35,18 @@ async def list_rois():
     return {"rois": names}
 
 
-@router.get("/{name}")
-async def get_roi(name: str):
-    """특정 ROI 좌표 반환"""
-    pts = load_roi(name)
-    if pts is None:
-        raise HTTPException(status_code=404, detail=f"ROI '{name}' 없음")
-    return {"name": name, "points": pts.tolist()}
-
-
-@router.post("/{name}")
-async def save_roi_endpoint(name: str, body: PointsBody):
-    """ROI 저장"""
-    if len(body.points) < 3:
-        raise HTTPException(status_code=400, detail="최소 3개의 꼭짓점이 필요합니다")
-    path = save_roi(name, body.points)
-    return {"status": "saved", "path": path, "points": body.points}
+# 영상 파일 목록은 별도 엔드포인트
+@router.get("/videos/list")
+async def list_videos():
+    """data/ 폴더의 영상 파일 목록"""
+    exts = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"}
+    if not os.path.exists(DATA_DIR):
+        return {"videos": []}
+    files = [
+        f for f in os.listdir(DATA_DIR)
+        if os.path.splitext(f)[1].lower() in exts
+    ]
+    return {"videos": sorted(files)}
 
 
 @router.post("/frame/capture")
@@ -71,15 +67,23 @@ async def get_first_frame(body: FrameRequest):
     return {"image": img_b64, "width": w, "height": h}
 
 
-# 영상 파일 목록은 별도 엔드포인트
-@router.get("/videos/list")
-async def list_videos():
-    """data/ 폴더의 영상 파일 목록"""
-    exts = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"}
-    if not os.path.exists(DATA_DIR):
-        return {"videos": []}
-    files = [
-        f for f in os.listdir(DATA_DIR)
-        if os.path.splitext(f)[1].lower() in exts
-    ]
-    return {"videos": sorted(files)}
+@router.get("/{name}")
+async def get_roi(name: str):
+    """특정 ROI 좌표 반환"""
+    pts = load_roi(name)
+    if pts is None:
+        raise HTTPException(status_code=404, detail=f"ROI '{name}' 없음")
+    return {"name": name, "points": pts.tolist()}
+
+
+@router.post("/{name}")
+async def save_roi_endpoint(name: str, body: PointsBody):
+    """ROI 저장"""
+    if len(body.points) < 3:
+        raise HTTPException(status_code=400, detail="최소 3개의 꼭짓점이 필요합니다")
+    try:
+        path = save_roi(name, body.points)
+        return {"status": "saved", "path": path, "points": body.points}
+    except Exception as e:
+        print(f"[ROI] 저장 오류 name={name!r}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
