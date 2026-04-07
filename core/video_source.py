@@ -90,9 +90,20 @@ class VideoSource:
         vs = VideoSource(self.source)
         if not vs.open():
             return None
-        ret, frame = vs.cap.read()
+        frame = None
+        if vs.is_rtsp:
+            # RTSP: 버퍼 안정화 대기 후 여러 프레임 읽어 마지막 유효 프레임 반환
+            time.sleep(1.5)
+            for _ in range(15):
+                ret, f = vs.cap.read()
+                if ret and f is not None:
+                    frame = f
+        else:
+            ret, f = vs.cap.read()
+            if ret and f is not None:
+                frame = f
         vs.release()
-        return frame if ret else None
+        return frame
 
     def reset(self):
         if self.cap and not self.is_rtsp:
