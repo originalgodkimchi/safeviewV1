@@ -3,11 +3,37 @@
 import cv2
 import os
 import csv
+import subprocess
 from datetime import datetime
 from collections import deque
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import EVENTS_DIR, LOGS_DIR, LOG_FILE, MAX_CLIP_FPS
+
+
+def _write_h264_via_pipe(frames: list, w: int, h: int, fps: float, filepath: str) -> bool:
+    """프레임을 ffmpeg 파이프로 직접 전달해 H.264 mp4 생성 (브라우저 재생 보장)"""
+    try:
+        import imageio_ffmpeg
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        cmd = [
+            ffmpeg, "-y",
+            "-f", "rawvideo", "-vcodec", "rawvideo",
+            "-s", f"{w}x{h}", "-pix_fmt", "bgr24", "-r", str(fps),
+            "-i", "pipe:0",
+            "-vcodec", "libx264", "-crf", "23",
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+            filepath,
+        ]
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        for frame in frames:
+            proc.stdin.write(frame.tobytes())
+        proc.stdin.close()
+        proc.wait(timeout=120)
+        return proc.returncode == 0 and os.path.exists(filepath)
+    except Exception as e:
+        print(f"[EventSaver] ffmpeg 파이프 실패: {e}")
+        return False
 
 
 def ensure_dirs():
@@ -38,14 +64,13 @@ def save_event_clip(frame_buffer: deque, source_name: str, fps: float = MAX_CLIP
     frames = list(frame_buffer)
     h, w = frames[0].shape[:2]
 
-    fourcc = cv2.VideoWriter_fourcc(*"avc1")
-    writer = cv2.VideoWriter(filepath, fourcc, float(fps), (w, h))
-    if not writer.isOpened():
+    if not _write_h264_via_pipe(frames, w, h, float(fps), filepath):
+        # ffmpeg 실패 시 mp4v fallback
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         writer = cv2.VideoWriter(filepath, fourcc, float(fps), (w, h))
-    for f in frames:
-        writer.write(f)
-    writer.release()
+        for f in frames:
+            writer.write(f)
+        writer.release()
 
     return filename, filepath
 
