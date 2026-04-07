@@ -22,7 +22,7 @@ LOG_FILE        = os.path.join(LOGS_DIR, "events_log.csv")
 
 FRAME_SKIP      = 2
 CLIP_PRE_SEC    = 5
-CLIP_POST_SEC   = 10
+CLIP_POST_SEC   = 5
 MAX_CLIP_FPS    = 10
 
 COLOR_ROI        = (0, 255, 255)
