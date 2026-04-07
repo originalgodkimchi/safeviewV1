@@ -64,6 +64,7 @@ class DetectionTracker:
         self.max_age   = max_age
         self.min_score = min_score
         self._tracks: list[dict] = []  # {det, age}
+        self._next_track_id = 1
 
     def update(self, detections: list[dict]) -> list[dict]:
         """
@@ -97,6 +98,8 @@ class DetectionTracker:
                     best_ti    = ti
 
             if best_ti >= 0:
+                track_id = self._tracks[best_ti]["track_id"]
+                det["track_id"] = track_id
                 self._tracks[best_ti]["det"] = det
                 self._tracks[best_ti]["age"] = 0
                 matched_track_idx.add(best_ti)
@@ -105,7 +108,10 @@ class DetectionTracker:
         # 매칭 안 된 새 감지 → 신규 트랙 생성
         for di, det in enumerate(detections):
             if di not in matched_det_idx:
-                self._tracks.append({"det": det, "age": 0})
+                track_id = self._next_track_id
+                self._next_track_id += 1
+                det["track_id"] = track_id
+                self._tracks.append({"det": det, "age": 0, "track_id": track_id})
 
         # 수명 초과 트랙 제거
         self._tracks = [t for t in self._tracks if t["age"] <= self.max_age]

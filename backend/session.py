@@ -14,12 +14,11 @@ if ROOT not in sys.path:
 from config import FRAME_SKIP, CLIP_PRE_SEC, CLIP_POST_SEC, MAX_CLIP_FPS
 from core.detector import Detector
 from core.roi_manager import load_roi, draw_roi_on_frame
+from core.roi_manager import is_point_in_roi
 from core.video_source import VideoSource
 from core.danger_logic import check_danger, draw_detections
 from core.event_saver import save_event_image, save_event_clip, log_event
 from core.tracker import DetectionTracker
-from core.plate_detector import PlateDetector
-from core.blur import apply_privacy_blur
 
 
 class MonitoringSession:
@@ -42,6 +41,7 @@ class MonitoringSession:
         self._latest_frame_bytes: bytes | None = None
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
+        self._remote_mode = False
 
         self._status = {
             "running": False,
@@ -102,6 +102,13 @@ class MonitoringSession:
     def get_status(self) -> dict:
         return dict(self._status)
 
+    def set_remote_mode(self, enabled: bool):
+        self._remote_mode = enabled
+
+    @property
+    def remote_mode(self) -> bool:
+        return self._remote_mode
+
     # ------------------------------------------------------------------
     # Internal processing loop
     # ------------------------------------------------------------------
@@ -137,7 +144,6 @@ class MonitoringSession:
         frame_buffer: deque = deque(maxlen=pre_buf_size + post_buf_size)
 
         tracker = DetectionTracker(max_age=10, min_score=0.15)
-        plate_detector = PlateDetector()
 
         frame_idx = 0
         fps_counter = 0
@@ -145,6 +151,8 @@ class MonitoringSession:
         in_event = False
         post_frames_remaining = 0
         consec_fail = 0
+        person_roi_state: dict[int, bool] = {}
+        danger_latch_frames = 0
 
         last_danger_result = {
             "is_danger": False, "has_person": False, "has_car": False,
@@ -195,21 +203,47 @@ class MonitoringSession:
                 print(f"[Session] 감지 오류: {e}")
                 danger_result = last_danger_result
 
+            # person이 ROI 내부 -> 외부로 이동한 프레임을 위험 이벤트로 간주
+            person_exit_detected = False
+            if roi_polygon is not None:
+                visible_person_ids = set()
+                for person in danger_result["all_persons"]:
+                    track_id = person.get("track_id")
+                    if track_id is None:
+                        continue
+                    visible_person_ids.add(track_id)
+                    inside_now = is_point_in_roi(person["bottom_center"], roi_polygon)
+                    inside_prev = person_roi_state.get(track_id)
+                    if inside_prev is True and not inside_now:
+                        person_exit_detected = True
+                    person_roi_state[track_id] = inside_now
+
+                for track_id in list(person_roi_state.keys()):
+                    if track_id not in visible_person_ids:
+                        del person_roi_state[track_id]
+
+            if person_exit_detected:
+                # UI에서 사람이 빠르게 지나가도 '위험' 배지가 보이도록 잠시 유지
+                danger_latch_frames = max(1, int(source_fps * 1.5))
+            elif danger_latch_frames > 0:
+                danger_latch_frames -= 1
+
+            is_danger_now = (
+                danger_result["is_danger"]
+                or person_exit_detected
+                or danger_latch_frames > 0
+            )
+            danger_result["is_danger"] = is_danger_now
+
             self._status.update({
                 "frame_idx": frame_idx,
                 "persons": len(danger_result["all_persons"]),
                 "cars": len(danger_result["all_cars"]),
-                "is_danger": danger_result["is_danger"],
+                "is_danger": is_danger_now,
             })
 
             # 시각화
             vis_frame = frame.copy()
-
-            try:
-                plate_bboxes = plate_detector.detect(frame, danger_result["all_cars"])
-                apply_privacy_blur(vis_frame, persons=danger_result["all_persons"], plate_bboxes=plate_bboxes)
-            except Exception as e:
-                print(f"[Session] 블러 오류: {e}")
 
             try:
                 vis_frame = draw_detections(vis_frame, danger_result, roi_polygon)
@@ -222,7 +256,7 @@ class MonitoringSession:
             frame_buffer.append(frame.copy())
 
             # 이벤트 저장
-            is_danger = danger_result["is_danger"]
+            is_danger = is_danger_now
             if is_danger and not in_event:
                 in_event = True
                 post_frames_remaining = post_buf_size
@@ -252,6 +286,11 @@ class MonitoringSession:
 
     def _encode_frame(self, frame, roi_polygon, danger_result):
         try:
+            if self._remote_mode:
+                h, w = frame.shape[:2]
+                if w > 640:
+                    scale = 640 / w
+                    frame = cv2.resize(frame, (640, int(h * scale)))
             _, buf = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
             with self._frame_lock:
                 self._latest_frame_bytes = buf.tobytes()
