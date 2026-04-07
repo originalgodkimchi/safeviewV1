@@ -8,7 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
@@ -53,7 +53,7 @@ async def generate_frames():
                 + frame_bytes
                 + b"\r\n"
             )
-        await asyncio.sleep(0.033)
+        await asyncio.sleep(0.2 if session.remote_mode else 0.033)
 
 
 @app.get("/api/stream")
@@ -92,6 +92,21 @@ async def list_videos():
         if os.path.splitext(f)[1].lower() in exts
     )
     return {"videos": files}
+
+
+@app.post("/api/videos/upload")
+async def upload_video(file: UploadFile = File(...)):
+    """data/ 폴더에 영상 파일 업로드"""
+    exts = {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in exts:
+        raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다")
+    os.makedirs(DATA_DIR, exist_ok=True)
+    filepath = os.path.join(DATA_DIR, file.filename)
+    content = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(content)
+    return {"filename": file.filename, "size": len(content)}
 
 
 @app.get("/")

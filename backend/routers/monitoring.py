@@ -57,3 +57,10 @@ async def stop_monitoring():
 async def get_status():
     """현재 세션 상태 조회"""
     return session.get_status()
+
+
+@router.post("/remote-mode")
+async def set_remote_mode(enabled: bool):
+    """원격 모드 토글 (해상도 640px, 5FPS)"""
+    session.set_remote_mode(enabled)
+    return {"remote_mode": enabled}
