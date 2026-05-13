@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in [''app.py'',''pages/1_모니터링.py'',''pages/2_ROI_설정.py'',''pages/3_이벤트_다시보기.py'']]; print\\(''문법 OK''\\)\")",
+      "Bash(python -c \":*)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(taskkill:*)",
+      "Bash(python -m uvicorn backend.main:app --port 8000)",
+      "Bash(python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000)",
+      "Bash(git:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import sys,json,os,subprocess; d=json.load(sys.stdin); f=d.get('tool_input',{}).get('file_path',''); f and subprocess.run(['git','-C','C:/dd','add',f]) and subprocess.run(['git','-C','C:/dd','commit','-m','auto: '+os.path.basename(f)+' 수정'])\" 2>/dev/null || true",
+            "statusMessage": "커밋 중..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git -C /c/dd push origin HEAD:main 2>/dev/null || true",
+            "statusMessage": "GitHub에 푸시 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
