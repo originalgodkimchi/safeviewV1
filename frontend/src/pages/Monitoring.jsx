@@ -1,12 +1,23 @@
 import { useState, useEffect, useRef } from 'react'
 import { api, API_BASE, getWsUrl } from '../config'
 
+const RTSP_STORAGE_KEY = 'safeview_rtsp_history'
+
+function loadRtspHistory() {
+  try { return JSON.parse(localStorage.getItem(RTSP_STORAGE_KEY)) || [] } catch { return [] }
+}
+function saveRtspHistory(list) {
+  localStorage.setItem(RTSP_STORAGE_KEY, JSON.stringify(list))
+}
+
 export default function Monitoring() {
   const [videos, setVideos] = useState([])
   const [sourceType, setSourceType] = useState('file')
   const [selectedFile, setSelectedFile] = useState('')
-  const [rtspUrl, setRtspUrl] = useState('')
+  const [rtspHistory, setRtspHistory] = useState(loadRtspHistory)   // [{url, label}]
+  const [rtspUrl, setRtspUrl] = useState(() => loadRtspHistory()[0]?.url || '')
   const [rtspShow, setRtspShow] = useState(false)
+  const [rtspAddingNew, setRtspAddingNew] = useState(false)          // 새 주소 입력 모드
   const [sourceName, setSourceName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [conf, setConf] = useState(0.4)
@@ -67,6 +78,18 @@ export default function Monitoring() {
     const sourcePath = sourceType === 'file' ? selectedFile : rtspUrl
     if (!sourcePath) return
 
+    // RTSP 주소를 히스토리에 저장 (중복 제거)
+    if (sourceType === 'rtsp' && sourcePath) {
+      const label = sourceName.trim() || sourcePath
+      const updated = [
+        { url: sourcePath, label },
+        ...rtspHistory.filter(h => h.url !== sourcePath),
+      ].slice(0, 10)
+      setRtspHistory(updated)
+      saveRtspHistory(updated)
+      setRtspAddingNew(false)
+    }
+
     try {
       await api.post('/api/monitoring/start', {
         source_type: sourceType,
@@ -78,6 +101,20 @@ export default function Monitoring() {
     } catch (e) {
       alert('시작 실패: ' + (e.response?.data?.detail || e.message))
     }
+  }
+
+  const handleRtspSelect = (url) => {
+    const found = rtspHistory.find(h => h.url === url)
+    setRtspUrl(url)
+    if (found && !sourceName) setSourceName(found.label)
+  }
+
+  const handleRtspDelete = (url, e) => {
+    e.stopPropagation()
+    const updated = rtspHistory.filter(h => h.url !== url)
+    setRtspHistory(updated)
+    saveRtspHistory(updated)
+    if (rtspUrl === url) { setRtspUrl(''); setRtspAddingNew(true) }
   }
 
   const handleStop = async () => {
@@ -188,31 +225,83 @@ export default function Monitoring() {
             ) : (
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">RTSP 주소</label>
-                <div className="relative">
-                  <input
-                    type={rtspShow ? 'text' : 'password'}
-                    value={rtspUrl}
-                    onChange={e => setRtspUrl(e.target.value)}
-                    placeholder="rtsp://user:pass@ip:port/path"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none focus:border-sv-green"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setRtspShow(s => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {rtspShow ? (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+
+                {/* 저장된 주소 목록 */}
+                {rtspHistory.length > 0 && !rtspAddingNew && (
+                  <div className="mb-2 space-y-1">
+                    {rtspHistory.map((h, i) => (
+                      <div
+                        key={h.url}
+                        onClick={() => handleRtspSelect(h.url)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
+                          rtspUrl === h.url
+                            ? 'border-sv-green bg-green-50 text-sv-green'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <span className="flex-1 truncate">{h.label}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleRtspDelete(h.url, e)}
+                          className="text-gray-300 hover:text-red-400 shrink-0 transition-colors"
+                          title="삭제"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => { setRtspAddingNew(true); setRtspUrl('') }}
+                      className="w-full border border-dashed border-gray-300 rounded-lg py-1.5 text-xs text-gray-400 hover:border-sv-green hover:text-sv-green transition-colors"
+                    >
+                      + 새 주소 추가
+                    </button>
+                  </div>
+                )}
+
+                {/* 새 주소 입력 (저장 이력이 없거나 새 입력 모드) */}
+                {(rtspHistory.length === 0 || rtspAddingNew) && (
+                  <div>
+                    <div className="relative">
+                      <input
+                        type={rtspShow ? 'text' : 'password'}
+                        value={rtspUrl}
+                        onChange={e => setRtspUrl(e.target.value)}
+                        placeholder="rtsp://user:pass@ip:port/path"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none focus:border-sv-green"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setRtspShow(s => !s)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {rtspShow ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {rtspHistory.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { setRtspAddingNew(false); setRtspUrl(rtspHistory[0].url) }}
+                        className="mt-1.5 text-xs text-gray-400 hover:text-gray-600"
+                      >
+                        ← 저장된 주소로 돌아가기
+                      </button>
                     )}
-                  </button>
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
