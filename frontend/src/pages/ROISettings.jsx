@@ -189,16 +189,14 @@ export default function ROISettings() {
 
   return (
     <div className="w-full">
-      <h1 className="text-xl font-bold text-gray-800 mb-4">ROI 영역 설정</h1>
-
       <div className="grid grid-cols-12 gap-4">
         {/* 좌측 컨트롤 */}
-        <div className="col-span-2 space-y-3">
+        <div className="col-span-3 space-y-3">
           {/* 소스 선택 */}
-          <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-4">소스 선택</h2>
 
-            <div className="flex rounded-lg overflow-hidden border border-sv-border mb-4">
+            <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-4">
               <button
                 onClick={() => setSourceType('file')}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
@@ -299,7 +297,7 @@ export default function ROISettings() {
           </div>
 
           {/* ROI 이름 & 저장 */}
-          <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-3">ROI 저장</h2>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">ROI 이름</label>
             <input
@@ -342,7 +340,7 @@ export default function ROISettings() {
 
           {/* 꼭짓점 좌표 */}
           {points.length > 0 && (
-            <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
               <h2 className="font-semibold text-gray-700 mb-3">꼭짓점 좌표</h2>
               <div className="space-y-1 max-h-48 overflow-y-auto">
                 {points.map((p, i) => (
@@ -359,7 +357,7 @@ export default function ROISettings() {
 
           {/* 저장된 ROI 목록 */}
           {savedRois.length > 0 && (
-            <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
               <h2 className="font-semibold text-gray-700 mb-3">저장된 ROI</h2>
               <div className="space-y-1">
                 {savedRois.map((name, i) => (
@@ -374,9 +372,9 @@ export default function ROISettings() {
         </div>
 
         {/* 우측: Canvas */}
-        <div className="col-span-10">
-          <div className="bg-white rounded-2xl border border-sv-border shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-sv-border flex items-center justify-between">
+        <div className="col-span-9">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
               <span className="font-medium text-gray-700 text-sm">
                 {imageData ? '클릭하여 꼭짓점 추가' : '기준 프레임을 불러오세요'}
               </span>
@@ -395,7 +393,7 @@ export default function ROISettings() {
                     : imageData.height
                   }
                   onClick={handleCanvasClick}
-                  className="roi-canvas w-full rounded-lg border border-sv-border"
+                  className="roi-canvas w-full rounded-lg border border-gray-200"
                   style={{ display: 'block' }}
                 />
               ) : (

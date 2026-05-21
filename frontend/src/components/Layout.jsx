@@ -1,33 +1,29 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 
+const PAGE_TITLES = {
+  '/': '대시보드',
+  '/monitoring': '실시간 모니터링',
+  '/roi': 'ROI 영역 설정',
+  '/events': '이벤트 기록',
+}
+
 export default function Layout() {
+  const { pathname } = useLocation()
+  const title = PAGE_TITLES[pathname] || 'SAFEVIEW'
+
   return (
-    <div className="flex h-screen bg-sv-bg overflow-hidden">
-      {/* 사이드바 */}
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
-
-      {/* 메인 콘텐츠 */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* 상단 헤더 */}
-        <header className="bg-white border-b border-sv-border px-5 py-2.5 flex items-center gap-3 shadow-sm shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-sv-green rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-              </svg>
-            </div>
-            <div>
-              <span className="font-bold text-sv-green text-base tracking-wide">SAFE</span>
-              <span className="font-bold text-gray-700 text-base tracking-wide">VIEW</span>
-            </div>
+        <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
+          <span className="font-semibold text-gray-800 text-base">{title}</span>
+          <div className="flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-medium px-3 py-1.5 rounded-full">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            시스템 정상
           </div>
-          <div className="text-gray-400 text-sm ml-2">안전사각지대 감지 시스템</div>
         </header>
-
-        {/* 페이지 콘텐츠 */}
-        <div className="flex-1 p-4 overflow-auto">
+        <div className="flex-1 p-5 overflow-auto">
           <Outlet />
         </div>
       </main>

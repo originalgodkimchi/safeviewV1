@@ -168,16 +168,14 @@ export default function Monitoring() {
 
   return (
     <div className="w-full">
-      <h1 className="text-xl font-bold text-gray-800 mb-4">실시간 모니터링</h1>
-
       <div className="grid grid-cols-12 gap-4">
         {/* 좌측 컨트롤 패널 */}
-        <div className="col-span-2 space-y-3">
-          <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+        <div className="col-span-3 space-y-3">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-4">영상 소스 설정</h2>
 
             {/* 소스 타입 */}
-            <div className="flex rounded-lg overflow-hidden border border-sv-border mb-4">
+            <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-4">
               <button
                 onClick={() => setSourceType('file')}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
@@ -358,14 +356,14 @@ export default function Monitoring() {
               <button
                 onClick={handleStart}
                 disabled={sourceType === 'file' && !selectedFile}
-                className="w-full bg-sv-green hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-sv-green hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all shadow-sm hover:shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 모니터링 시작
               </button>
             ) : (
               <button
                 onClick={handleStop}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors"
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-all shadow-sm text-sm"
               >
                 정지
               </button>
@@ -374,7 +372,7 @@ export default function Monitoring() {
 
           {/* 상태 패널 */}
           {status && (
-            <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
               <h2 className="font-semibold text-gray-700 mb-3">시스템 상태</h2>
               <div className="space-y-2 text-sm">
                 <StatRow label="FPS" value={status.fps} />
@@ -389,7 +387,7 @@ export default function Monitoring() {
         </div>
 
         {/* 중앙: 영상 스트림 */}
-        <div className="col-span-8 space-y-3">
+        <div className="col-span-6 space-y-3">
           {errorMsg && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
               <span className="font-bold shrink-0">연결 실패</span>
@@ -399,7 +397,7 @@ export default function Monitoring() {
           )}
           <div
             ref={videoContainerRef}
-            className="bg-black rounded-2xl overflow-hidden border border-gray-800 shadow-lg aspect-video flex items-center justify-center relative group"
+            className="bg-gray-950 rounded-2xl overflow-hidden border border-gray-700 shadow-xl aspect-video flex items-center justify-center relative group"
           >
             {running ? (
               <img
@@ -432,13 +430,11 @@ export default function Monitoring() {
                          opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
             >
               {isFullscreen ? (
-                // 축소 아이콘
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M15 9h4.5M15 9V4.5M15 9l5.25-5.25M9 15H4.5M9 15v4.5M9 15l-5.25 5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25" />
                 </svg>
               ) : (
-                // 확대 아이콘
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -448,57 +444,48 @@ export default function Monitoring() {
           </div>
 
           {/* 정보바 */}
-          <div className="bg-white rounded-xl border border-sv-border px-5 py-3 flex items-center gap-6 shadow-sm">
-            <InfoBadge
-              label="사람"
-              value={status?.persons ?? 0}
-              color={status?.persons > 0 ? 'text-amber-600' : 'text-gray-500'}
-            />
-            <InfoBadge
-              label="차량"
-              value={status?.cars ?? 0}
-              color={status?.cars > 0 ? 'text-blue-600' : 'text-gray-500'}
-            />
-            <InfoBadge
-              label="ROI"
-              value={status?.roi_loaded ? '설정됨' : '미설정'}
-              color={status?.roi_loaded ? 'text-sv-green' : 'text-gray-400'}
-            />
-            <InfoBadge
-              label="소스"
-              value={maskSource(status?.source_name)}
-              color="text-gray-600"
-            />
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 flex items-center gap-5 shadow-sm text-sm">
+            <InfoBadge label="사람" value={status?.persons ?? 0} color={status?.persons > 0 ? 'text-amber-600' : 'text-gray-400'} />
+            <div className="w-px h-4 bg-gray-200"></div>
+            <InfoBadge label="차량" value={status?.cars ?? 0} color={status?.cars > 0 ? 'text-blue-600' : 'text-gray-400'} />
+            <div className="w-px h-4 bg-gray-200"></div>
+            <InfoBadge label="ROI" value={status?.roi_loaded ? '설정됨' : '미설정'} color={status?.roi_loaded ? 'text-sv-green' : 'text-gray-400'} />
+            <div className="w-px h-4 bg-gray-200"></div>
+            <InfoBadge label="소스" value={maskSource(status?.source_name)} color="text-gray-600" />
+            {status?.fps && <>
+              <div className="w-px h-4 bg-gray-200"></div>
+              <InfoBadge label="FPS" value={status.fps} color="text-gray-600" />
+            </>}
           </div>
         </div>
 
         {/* 우측: 위험/정상 상태 + 최근 이벤트 */}
-        <div className="col-span-2 space-y-3">
+        <div className="col-span-3 space-y-3">
           {/* 위험/정상 상태 */}
-          <div className={`rounded-2xl border p-5 shadow-sm transition-all ${
+          <div className={`rounded-2xl border p-4 transition-all ${
             isDanger
-              ? 'bg-sv-danger-bg border-red-200'
+              ? 'bg-red-50 border-red-200'
               : 'bg-sv-mint border-sv-border'
           }`}>
             <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm ${
                 isDanger ? 'bg-red-500' : 'bg-sv-green'
               }`}>
                 {isDanger ? '!' : '✓'}
               </div>
               <div>
-                <div className={`text-lg font-bold ${isDanger ? 'text-red-700' : 'text-sv-green'}`}>
+                <div className={`text-base font-bold ${isDanger ? 'text-red-700' : 'text-sv-green'}`}>
                   {isDanger ? '위험 감지' : '정상'}
                 </div>
-                <div className="text-xs text-gray-500">
-                  {isDanger ? 'ROI 위험 이벤트 감지됨' : '이상 없음'}
+                <div className="text-xs text-gray-400">
+                  {isDanger ? 'ROI 내 위험 이벤트' : '이상 없음'}
                 </div>
               </div>
             </div>
           </div>
 
           {/* 최근 이벤트 */}
-          <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-3">최근 이벤트</h2>
             {recentEvents.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-4">이벤트 없음</p>
@@ -546,4 +533,3 @@ function InfoBadge({ label, value, color }) {
     </div>
   )
 }
-

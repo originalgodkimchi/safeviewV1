@@ -35,15 +35,14 @@ export default function Events() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">이벤트 기록</h1>
-        <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-          총 {events.length}건
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm text-gray-500">
+          총 <strong className="text-gray-700">{events.length}</strong>건의 이벤트
         </span>
       </div>
 
       {/* 날짜 필터 */}
-      <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm mb-5">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm mb-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">날짜 선택</label>
@@ -73,7 +72,7 @@ export default function Events() {
                   className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                     selectedDate === d
                       ? 'bg-sv-green text-white border-sv-green'
-                      : 'border-sv-border text-gray-600 hover:border-sv-green'
+                      : 'border-gray-200 text-gray-600 hover:border-sv-green'
                   }`}
                 >
                   {d}
@@ -88,7 +87,7 @@ export default function Events() {
       {loading ? (
         <div className="text-center py-16 text-gray-400">로딩 중...</div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-sv-border shadow-sm">
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 shadow-sm">
           <svg className="w-16 h-16 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
               d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -104,11 +103,11 @@ export default function Events() {
             const tab = activeTab[id] || '사진'
 
             return (
-              <div key={id} className="bg-white rounded-2xl border border-sv-border shadow-sm overflow-hidden">
+              <div key={id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:border-gray-300 transition-colors">
                 {/* 카드 헤더 */}
                 <button
                   onClick={() => toggleExpand(id)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
@@ -130,9 +129,9 @@ export default function Events() {
 
                 {/* 펼쳐진 내용 */}
                 {isOpen && (
-                  <div className="border-t border-sv-border">
+                  <div className="border-t border-gray-200">
                     {/* 탭 */}
-                    <div className="flex border-b border-sv-border px-5">
+                    <div className="flex border-b border-gray-200 px-5">
                       {TABS.map(t => (
                         <button
                           key={t}
@@ -179,7 +178,7 @@ function EventImageTab({ ev }) {
       <img
         src={`${API_BASE}/events-files/${ev.image_file}`}
         alt="이벤트 이미지"
-        className="max-w-full max-h-80 rounded-xl border border-sv-border object-contain"
+        className="max-w-full max-h-80 rounded-xl border border-gray-200 object-contain"
         onError={e => { e.target.style.display = 'none' }}
       />
     </div>
@@ -195,7 +194,7 @@ function EventVideoTab({ ev }) {
       <video
         src={`${API_BASE}/events-files/${ev.clip_file}`}
         controls
-        className="max-w-full max-h-80 rounded-xl border border-sv-border"
+        className="max-w-full max-h-80 rounded-xl border border-gray-200"
       />
     </div>
   )
