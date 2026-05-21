@@ -44,7 +44,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="w-full space-y-5">
       {/* 헤더 */}
       <div className="bg-white rounded-2xl border border-sv-border p-8 shadow-sm">
         <div className="flex items-start justify-between">

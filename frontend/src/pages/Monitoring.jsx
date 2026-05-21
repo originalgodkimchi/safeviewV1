@@ -167,12 +167,12 @@ export default function Monitoring() {
   const isDanger = status?.is_danger
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">실시간 모니터링</h1>
+    <div className="w-full">
+      <h1 className="text-xl font-bold text-gray-800 mb-4">실시간 모니터링</h1>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-4">
         {/* 좌측 컨트롤 패널 */}
-        <div className="col-span-3 space-y-4">
+        <div className="col-span-2 space-y-3">
           <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-4">영상 소스 설정</h2>
 
@@ -389,7 +389,7 @@ export default function Monitoring() {
         </div>
 
         {/* 중앙: 영상 스트림 */}
-        <div className="col-span-6 space-y-4">
+        <div className="col-span-8 space-y-3">
           {errorMsg && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
               <span className="font-bold shrink-0">연결 실패</span>
@@ -473,7 +473,7 @@ export default function Monitoring() {
         </div>
 
         {/* 우측: 위험/정상 상태 + 최근 이벤트 */}
-        <div className="col-span-3 space-y-4">
+        <div className="col-span-2 space-y-3">
           {/* 위험/정상 상태 */}
           <div className={`rounded-2xl border p-5 shadow-sm transition-all ${
             isDanger

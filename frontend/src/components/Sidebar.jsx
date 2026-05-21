@@ -46,7 +46,7 @@ const navItems = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-56 bg-sv-mint border-r border-sv-border flex flex-col shrink-0">
+    <aside className="w-48 bg-sv-mint border-r border-sv-border flex flex-col shrink-0">
       {/* 로고 영역 */}
       <div className="px-5 py-5 border-b border-sv-border">
         <div className="flex items-center gap-2">

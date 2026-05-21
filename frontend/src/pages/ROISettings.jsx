@@ -188,12 +188,12 @@ export default function ROISettings() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">ROI 영역 설정</h1>
+    <div className="w-full">
+      <h1 className="text-xl font-bold text-gray-800 mb-4">ROI 영역 설정</h1>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-4">
         {/* 좌측 컨트롤 */}
-        <div className="col-span-3 space-y-4">
+        <div className="col-span-2 space-y-3">
           {/* 소스 선택 */}
           <div className="bg-white rounded-2xl border border-sv-border p-5 shadow-sm">
             <h2 className="font-semibold text-gray-700 mb-4">소스 선택</h2>
@@ -374,7 +374,7 @@ export default function ROISettings() {
         </div>
 
         {/* 우측: Canvas */}
-        <div className="col-span-9">
+        <div className="col-span-10">
           <div className="bg-white rounded-2xl border border-sv-border shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-sv-border flex items-center justify-between">
               <span className="font-medium text-gray-700 text-sm">
